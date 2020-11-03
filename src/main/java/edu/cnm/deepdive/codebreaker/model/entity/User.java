@@ -76,6 +76,7 @@ public class User {
   @OrderBy("deadline DESC")
   private final List<Match> matches = new LinkedList<>();
 
+  // if our code is assigning a value to a field, we need a setter
   @NonNull
   public UUID getId() {
     return id;
