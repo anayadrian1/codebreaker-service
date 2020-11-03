@@ -1,5 +1,6 @@
 package edu.cnm.deepdive.codebreaker.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class User {
   @Column(nullable = false, updatable = false)
   private Date created;
 
+  @JsonIgnore
   @NonNull
   @Column(nullable = false, updatable = false, unique = true)
   private String oauthKey;
@@ -60,17 +62,20 @@ public class User {
   @Column(nullable = false, unique = true)
   private String displayName;
 
+  @JsonIgnore
   @NonNull
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "originator", cascade = CascadeType.ALL, orphanRemoval = true) //same as field; orphan is match taken out of list
   @OrderBy("started DESC")
   private final List<Match> matchesOriginated = new LinkedList<>(); // originator_id
 
+  @JsonIgnore
   @NonNull
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "winner", cascade =
       {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
   @OrderBy("deadline DESC")
   private final List<Match> matchesWon = new LinkedList<>();
 
+  @JsonIgnore
   @NonNull
   @ManyToMany(mappedBy = "players", fetch = FetchType.LAZY) // users can play a lot of games and dont want them all every time
   @OrderBy("deadline DESC")
