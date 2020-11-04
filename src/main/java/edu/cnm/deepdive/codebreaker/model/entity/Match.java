@@ -15,10 +15,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.lang.NonNull;
@@ -29,7 +31,6 @@ import org.springframework.lang.NonNull;
     name = "tournament",
     indexes = {
         @Index(columnList = "codeLength"),
-        @Index(columnList = "gameCount"),
         @Index(columnList = "started,deadline")
     }
 )
@@ -56,7 +57,7 @@ public class Match {
   @Column(nullable = false) //nullable in the database
   private String pool;
 
-  @Column(updatable = false)
+  @Transient // if youre writing an object of this type, dont bother writing the value of this field
   private int gameCount; //room doesn't translate name
 
   @Column(nullable = false, updatable = false)
@@ -82,6 +83,10 @@ public class Match {
       inverseJoinColumns = {@JoinColumn(name = "user_id")}) // join column refers to match, inverse refers to joining
   @OrderBy("displayName ASC")
   private final List<User> players = new LinkedList<>();
+
+  @NonNull
+  @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true) // if we delete match, delete all games associated; never do on Many to Many
+  private final List<Game> games = new LinkedList<>(); // when looking at one to many or many2many and you have an empty list as an initial value, you only need a getter
 
   @NonNull
   public UUID getId() {
@@ -155,6 +160,11 @@ public class Match {
   @NonNull
   public List<User> getPlayers() {
     return players;
+  }
+
+  @NonNull
+  public List<Game> getGames() {
+    return games;
   }
 
   public enum Criterion {
