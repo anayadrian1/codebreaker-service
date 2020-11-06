@@ -1,10 +1,15 @@
 package edu.cnm.deepdive.codebreaker.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URI;
+import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,8 +25,11 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
+import org.springframework.hateoas.server.EntityLinks;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
@@ -32,7 +40,14 @@ import org.springframework.lang.NonNull;
         @Index(columnList = "connected")
     }
 )
+@JsonIgnoreProperties(
+    value = {"id", "created", "connected", "oauthKey", "matches", "matchesWon", "matchedOriginated"},
+    allowGetters = true, ignoreUnknown = true)
+@JsonPropertyOrder({"id", "href", "displayName", "created", "connected"})
+@Component // participates in dependency injection
 public class User {
+
+  private static EntityLinks entityLinks;
 
   @NonNull
   @Id
@@ -132,5 +147,22 @@ public class User {
   @NonNull
   public List<Match> getMatches() {
     return matches;
+  }
+
+  public URI getHref() {
+    return (id != null) ? entityLinks.linkForItemResource(User.class, id).toUri() : null;
+  }
+
+  @PostConstruct
+  private void initHateoas() {
+    //noinspection ResultOfMethodCallIgnored
+    entityLinks.toString();
+  }
+
+  @Autowired
+
+  public void setEntityLinks(
+      @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EntityLinks entityLinks) {
+    User.entityLinks = entityLinks;
   }
 }
